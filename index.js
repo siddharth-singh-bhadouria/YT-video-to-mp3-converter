@@ -11,28 +11,32 @@ function sanitizeFilename(name) {
 }
 
 // ✅ Change: resolve with 'timeout' instead of rejecting
-function timeoutPromise(ms) {
-    return new Promise((resolve) => {
-        setTimeout(() => {
+function cancellableTimeoutPromise(ms) {
+    let timeoutId;
+    const promise = new Promise((resolve) => {
+        timeoutId = setTimeout(() => {
             console.log('⏰ Timeout: Using default filename.');
             resolve('timeout');
         }, ms);
     });
+    return { promise, cancel: () => clearTimeout(timeoutId) };
 }
 
 (async () => {
     let safeTitle = 'downloaded_audio'; // default fallback
 
+    const { promise: timeoutP, cancel } = cancellableTimeoutPromise(20000);
+
     const result = await Promise.race([
         ytdl.getInfo(videoURL),
-        timeoutPromise(20000) // 2-second timeout
+        timeoutP // 20-second max timeout
     ]);
 
     if (result !== 'timeout') {
+        cancel(); // ✅ Cancel the pending timeout if getInfo succeeded
         const rawTitle = result.videoDetails.title;
         safeTitle = sanitizeFilename(rawTitle);
     }
-
     const outputDir = '/Users/siddharth_singh_bhadouria/Downloads/Music Collection';
 
     if (!fs.existsSync(outputDir)) {
