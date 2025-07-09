@@ -1,8 +1,12 @@
+require('dotenv').config();
+
 const fs = require('fs');
 const ytdl = require('@distube/ytdl-core');
 const ffmpegPath = require('ffmpeg-static');
 const { spawn } = require('child_process');
 const path = require('path');
+
+const filePath = process.env.FILE_PATH;
 
 const videoURL = process.argv[2];
 
@@ -37,7 +41,7 @@ function cancellableTimeoutPromise(ms) {
         const rawTitle = result.videoDetails.title;
         safeTitle = sanitizeFilename(rawTitle);
     }
-    const outputDir = '/Users/siddharth_singh_bhadouria/Downloads/Music Collection';
+    const outputDir = filePath;
 
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
